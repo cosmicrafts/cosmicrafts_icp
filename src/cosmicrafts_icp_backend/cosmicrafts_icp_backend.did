@@ -1,0 +1,16 @@
+// src/cosmicrafts_icp_backend/cosmicrafts_icp_backend.did
+
+type UserId = text;
+
+type User = record {
+    id: UserId;
+    name: text;
+    email: text;
+    // Add more fields as needed.
+};
+
+service : {
+    create_user: (User) -> ();
+    get_user: (UserId) -> (opt User);
+    // Add more methods as needed.
+}

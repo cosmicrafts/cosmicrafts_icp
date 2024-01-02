@@ -1,0 +1,30 @@
+{
+  "canisters": {
+    "cosmicrafts_icp_backend": {
+      "candid": "src/cosmicrafts_icp_backend/cosmicrafts_icp_backend.did",
+      "package": "cosmicrafts_icp_backend",
+      "type": "rust"
+    },
+    "cosmicrafts_icp_frontend": {
+      "dependencies": [
+        "cosmicrafts_icp_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/cosmicrafts_icp_frontend/index.html"
+      },
+      "source": [
+        "dist/cosmicrafts_icp_frontend"
+      ],
+      "type": "assets",
+      "build": "yarn --cwd src/cosmicrafts_icp_frontend build"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
