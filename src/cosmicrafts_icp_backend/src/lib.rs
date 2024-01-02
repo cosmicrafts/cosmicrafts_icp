@@ -9,6 +9,7 @@ struct User {
     id: UserId,
     name: String,
     email: String,
+    picture: String,
     // other fields as needed
 }
 
