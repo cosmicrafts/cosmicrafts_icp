@@ -16,7 +16,7 @@
         "dist/cosmicrafts_icp_frontend"
       ],
       "type": "assets",
-      "build": "yarn --cwd src/cosmicrafts_icp_frontend build"
+      "build": "yarn --cwd src/cosmicrafts_icp_frontend build --emptyOutDir"
     }
   },
   "defaults": {

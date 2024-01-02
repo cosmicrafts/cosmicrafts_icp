@@ -1,10 +1,19 @@
-// src/components/NavBar.jsx
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { createUser } from '../api/api';
 
 const NavBar = () => {
   const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0();
+  
+  useEffect(() => {
+    // Call createUser when the user is authenticated
+    if (isAuthenticated && user) {
+      createUser(user);
+
+      // Log user data to the console
+      console.log('User Data:', user);
+    }
+  }, [isAuthenticated, user]);
 
   return (
     <div>
