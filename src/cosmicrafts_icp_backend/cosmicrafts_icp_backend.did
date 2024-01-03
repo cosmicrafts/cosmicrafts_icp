@@ -83,6 +83,10 @@ service : {
     get_user: (UserId) -> (opt User);
     update_user: (User) -> ();
     // Add more methods as needed.
+
+    // IC WebScockets Services
+    "ws_open" : (CanisterWsOpenArguments) -> (CanisterWsOpenResult);
+  "ws_close" : (CanisterWsCloseArguments) -> (CanisterWsCloseResult);
+  "ws_message" : (CanisterWsMessageArguments, opt AppMessage) -> (CanisterWsMessageResult);
+  "ws_get_messages" : (CanisterWsGetMessagesArguments) -> (CanisterWsGetMessagesResult) query;
 }
-
-

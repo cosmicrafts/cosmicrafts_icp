@@ -10,19 +10,17 @@ const NavBar = () => {
 
   useEffect(() => {
     const handleUserData = async () => {
-
-
       if (isAuthenticated && user) {
         let fetchedUser = await fetchUserData(user.sub);
-
-
-        if (fetchedUser === null) {
+  
+        if (Array.isArray(fetchedUser) && fetchedUser.length === 0) {
+          // User does not exist in the Canister, create a new user and fetch Auth0 info
           await createUser(user);
-          fetchedUser = await fetchUserData(user.sub);
+          fetchedUser = await fetchUserData(user.sub); // Fetch user info after creation
         }
-
-
+  
         if (fetchedUser && fetchedUser.length > 0) {
+          // Set Canister user data
           setCanisterUser(fetchedUser[0]);
         }
       }
