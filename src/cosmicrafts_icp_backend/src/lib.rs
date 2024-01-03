@@ -1,3 +1,4 @@
+// src/cosmicrafts_icp_backend/src/lib.rs
 use candid:: CandidType;
 use std::cell::RefCell;
 use serde::{Deserialize, Serialize};

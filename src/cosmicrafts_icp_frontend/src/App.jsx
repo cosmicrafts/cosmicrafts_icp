@@ -4,10 +4,12 @@ import './App.css'
 import NavBar from './components/NavBar';
 import { useAuth0 } from '@auth0/auth0-react';
 import Notification from './components/Notification';
+import useWebSocketConnection from './components/icwebsockets'
 
 const App = () => {
   const [notification, setNotification] = useState(null);
   const { isAuthenticated } = useAuth0();
+  useWebSocketConnection(); 
 
   // Call this function to show a notification
   const showNotification = (message, type) => {

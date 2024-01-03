@@ -1,3 +1,5 @@
+// src/cosmicrafts_icp_backend/src/canister.rs
+
 use candid::{decode_one, encode_one, CandidType};
 use ic_cdk::{api::time, print};
 use serde::{Deserialize, Serialize};

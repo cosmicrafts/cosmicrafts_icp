@@ -1,3 +1,5 @@
+// src/cosmicrafts_icp_frontend/src/declarations/cosmicrafts_icp_backend/cosmicrafts_icp_backend.did.js
+
 export const idlFactory = ({ IDL }) => {
   const UserId = IDL.Text;
   const User = IDL.Record({

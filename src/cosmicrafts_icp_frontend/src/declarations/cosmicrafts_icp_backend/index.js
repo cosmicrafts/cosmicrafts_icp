@@ -1,3 +1,5 @@
+// src/cosmicrafts_icp_frontend/src/declarations/cosmicrafts_icp_backend/index.js
+
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { idlFactory } from "./cosmicrafts_icp_backend.did.js";
 

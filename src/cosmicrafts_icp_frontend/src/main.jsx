@@ -6,56 +6,7 @@ import { Auth0Provider } from '@auth0/auth0-react';
 import App from './App';
 
 
-import IcWebSocket, { generateRandomIdentity, createWsConfig } from "ic-websocket-js";
-import { cosmicrafts_icp_backend } from "./declarations/cosmicrafts_icp_backend";
-
-const gatewayUrl = "wss://gateway.icws.io";
-const icUrl = "https://ic0.app";
-const backendCanisterId = 'br74h-zyaaa-aaaap-qb54a-cai';
-
-const wsConfig = createWsConfig({
-  canisterId: backendCanisterId,
-  canisterActor: cosmicrafts_icp_backend,
-  identity: generateRandomIdentity(),
-  networkUrl: icUrl,
-});
-
-const ws = new IcWebSocket(gatewayUrl, undefined, wsConfig);
-
-ws.onopen = () => {
-  console.log("Connected to the canister");
-};
-
-ws.onmessage = async (event) => {
-  console.log("Received message:", event.data);
-
-  const messageToSend = {
-    text: event.data.text + "-pong",
-    timestamp: Date.now() // Adding the timestamp field here
-  };
-  ws.send(messageToSend);
-};
-
-
-ws.onclose = () => {
-  console.log("Disconnected from the canister");
-};
-
-ws.onerror = (error) => {
-  console.log("Error:", error);
-};
-
-
-
-
-ws.onclose = () => {
-  console.log("Disconnected from the canister");
-};
-
-ws.onerror = (error) => {
-  console.log("Error:", error);
-};
-
+//Main
 const root = createRoot(document.getElementById('root'));
 root.render(
   <BrowserRouter>
