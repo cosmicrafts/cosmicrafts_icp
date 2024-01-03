@@ -1,15 +1,15 @@
-use candid::{CandidType, encode_one, decode_one};
-use ic_cdk::{print, api::time};
+use candid::{decode_one, encode_one, CandidType};
+use ic_cdk::{api::time, print};
 use serde::{Deserialize, Serialize};
 
 use ic_websocket_cdk::{
     send, ClientPrincipal, OnCloseCallbackArgs, OnMessageCallbackArgs, OnOpenCallbackArgs,
 };
 
-// this is the application message, you can change it as you wish
 #[derive(CandidType, Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
 pub struct AppMessage {
     pub text: String,
+    pub timestamp: u64,
 }
 
 impl AppMessage {
@@ -21,6 +21,7 @@ impl AppMessage {
 pub fn on_open(args: OnOpenCallbackArgs) {
     let msg = AppMessage {
         text: String::from("ping"),
+        timestamp: time(),
     };
     send_app_message(args.client_principal, msg);
 }
@@ -29,6 +30,7 @@ pub fn on_message(args: OnMessageCallbackArgs) {
     let app_msg: AppMessage = decode_one(&args.message).unwrap();
     let new_msg = AppMessage {
         text: String::from("ping"),
+        timestamp: time(),
     };
     print(format!("Received message: {:?}", app_msg));
     send_app_message(args.client_principal, new_msg)

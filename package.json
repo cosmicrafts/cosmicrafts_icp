@@ -17,14 +17,18 @@
     "generate": "dfx generate cosmicrafts_icp_backend"
   },
   "dependencies": {
-    "@dfinity/agent": "^0.20.2",
-    "@dfinity/candid": "^0.20.2",
-    "@dfinity/principal": "^0.20.2"
+    "@babel/preset-env": "file:babel/preset-typescript@types/hdkey@types/jestassertbabel-jestbip39bufferdotenveventshdkeyisomorphic-fetchisomorphic-webcryptojestjest-environment-jsdomjest-websocket-mockmswprocessstream-browserifyts-jesttypescriptutil",
+    "@dfinity/agent": "^0.20.1",
+    "@dfinity/candid": "^0.20.1",
+    "@dfinity/principal": "^0.20.1",
+    "ic-websocket-js": "^0.3.2",
+    "loglevel": "^1.8.1"
   },
   "devDependencies": {
     "assert": "2.0.0",
     "buffer": "6.0.3",
     "copy-webpack-plugin": "^11.0.0",
+    "crypto-browserify": "^3.12.0",
     "dotenv": "^16.0.3",
     "events": "3.3.0",
     "html-webpack-plugin": "5.5.0",

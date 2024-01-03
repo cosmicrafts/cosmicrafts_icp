@@ -1,6 +1,6 @@
 // src/cosmicrafts_icp_backend/cosmicrafts_icp_backend.did
-// User Profile Types
 
+// User Profile Types
 type UserId = text;
 
 type User = record {
@@ -11,12 +11,15 @@ type User = record {
     // Add more fields as needed.
 };
 
-// WebSockets Types
+// IC WebSockets Types
+
 type AppMessage = record {
   text : text;
+  timestamp : nat64;
 };
 
 type ClientPrincipal = principal;
+type GatewayPrincipal = principal;
 type ClientKey = record {
   client_principal : ClientPrincipal;
   client_nonce : nat64;
@@ -40,10 +43,12 @@ type CanisterOutputCertifiedMessages = record {
   messages : vec CanisterOutputMessage;
   cert : blob;
   tree : blob;
+  is_end_of_queue : bool;
 };
 
 type CanisterWsOpenArguments = record {
   client_nonce : nat64;
+  gateway_principal : GatewayPrincipal;
 };
 
 type CanisterWsOpenResult = variant {
@@ -78,15 +83,16 @@ type CanisterWsGetMessagesResult = variant {
   Err : text;
 };
 
+
 service : {
-    create_user: (User) -> ();
-    get_user: (UserId) -> (opt User);
-    update_user: (User) -> ();
+  create_user: (User) -> ();
+  get_user: (UserId) -> (opt User);
+  update_user: (User) -> ();
     // Add more methods as needed.
 
     // IC WebScockets Services
-    "ws_open" : (CanisterWsOpenArguments) -> (CanisterWsOpenResult);
-  "ws_close" : (CanisterWsCloseArguments) -> (CanisterWsCloseResult);
-  "ws_message" : (CanisterWsMessageArguments, opt AppMessage) -> (CanisterWsMessageResult);
-  "ws_get_messages" : (CanisterWsGetMessagesArguments) -> (CanisterWsGetMessagesResult) query;
+  ws_open: (CanisterWsOpenArguments) -> (CanisterWsOpenResult);
+  ws_close: (CanisterWsCloseArguments) -> (CanisterWsCloseResult);
+  ws_message: (CanisterWsMessageArguments, opt AppMessage) -> (CanisterWsMessageResult);
+  ws_get_messages: (CanisterWsGetMessagesArguments) -> (CanisterWsGetMessagesResult) query;
 }
