@@ -1,21 +1,3 @@
-// src/cosmicrafts_icp_backend/cosmicrafts_icp_backend.did
-// User Profile Types
-
-type UserId = text;
-
-type User = record {
-    id: UserId;
-    name: text;
-    email: text;
-    picture: text;
-    // Add more fields as needed.
-};
-
-// WebSockets Types
-type AppMessage = record {
-  text : text;
-};
-
 type ClientPrincipal = principal;
 type ClientKey = record {
   client_principal : ClientPrincipal;
@@ -77,12 +59,3 @@ type CanisterWsGetMessagesResult = variant {
   Ok : CanisterOutputCertifiedMessages;
   Err : text;
 };
-
-service : {
-    create_user: (User) -> ();
-    get_user: (UserId) -> (opt User);
-    update_user: (User) -> ();
-    // Add more methods as needed.
-}
-
-
