@@ -7,6 +7,7 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'email' : IDL.Text,
     'picture' : IDL.Text,
+    'username' : IDL.Text,
   });
   return IDL.Service({
     'create_user' : IDL.Func([User], [], []),

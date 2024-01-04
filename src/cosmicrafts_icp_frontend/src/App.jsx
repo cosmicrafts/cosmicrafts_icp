@@ -1,35 +1,38 @@
-// src/App.jsx
-import React, { useState } from 'react';
-import './App.css'
+import React, { useState, useEffect } from 'react';
+import './App.css';
 import NavBar from './components/NavBar';
 import { useAuth0 } from '@auth0/auth0-react';
 import Notification from './components/Notification';
-import useWebSocketConnection from './components/icwebsockets'
 
 const App = () => {
   const [notification, setNotification] = useState(null);
   const { isAuthenticated } = useAuth0();
-  useWebSocketConnection(); 
+  const [canisterUserData, setCanisterUserData] = useState(null);
 
   // Call this function to show a notification
   const showNotification = (message, type) => {
       setNotification({ message, type });
-      setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+      setTimeout(() => setNotification(null), 5000); // Hide after 3 seconds
   };
-   // Example: Show a success notification after login
-   React.useEffect(() => {
-    if (isAuthenticated) {
-        showNotification('Login Successful!', 'success');
-    }
-}, [isAuthenticated]);
 
-return (
+  // Example: Show a success notification after login
+  useEffect(() => {
+    if (isAuthenticated) {
+      showNotification('Login Successful!', 'success');
+    }
+    if (isAuthenticated && canisterUserData) {
+      const welcomeMessage = `Welcome ${canisterUserData.username || 'User'}!`;
+      showNotification(welcomeMessage, 'success');
+    }
+  }, [isAuthenticated, canisterUserData]);
+
+  return (
     <div>
-      <NavBar />
-        {notification && <Notification message={notification.message} type={notification.type} />}
-        {/* Rest of your app */}
+      <NavBar setCanisterUserData={setCanisterUserData} />
+      {notification && <Notification message={notification.message} type={notification.type} />}
+      {/* Rest of your app */}
     </div>
-);
+  );
 };
 
-export default App
+export default App;

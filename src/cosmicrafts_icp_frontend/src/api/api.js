@@ -22,6 +22,7 @@ export const createUser = async (user) => {
       name: user.name,
       email: user.email,
       picture: user.picture,
+      username: user.username,
     });
     console.log('User created successfully');
   } catch (error) {

@@ -8,6 +8,7 @@ type User = record {
     name: text;
     email: text;
     picture: text;
+    username: text;
     // Add more fields as needed.
 };
 
