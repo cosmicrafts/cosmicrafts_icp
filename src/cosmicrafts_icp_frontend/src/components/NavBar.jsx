@@ -1,62 +1,40 @@
-// src/components/NavBar.jsx
-import React, { useState, useEffect } from 'react';
+// src/cosmicrafts_icp_frontend/src/components/NavBar.jsx
+
+import React from 'react';
+import { inject, observer } from 'mobx-react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { createUser, fetchUserData } from '../api/api';
 import UserProfile from './UserProfile';
 import NewUserForm from './NewUserForm';
 
-const NavBar = ({ setCanisterUserData }) => {
-  const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0();
-  const [canisterUser, setCanisterUser] = useState(null);
-  const [showUsernameForm, setShowUsernameForm] = useState(false);
+const NavBar = inject("userStore")(observer(({ userStore }) => {
+  const { loginWithRedirect, logout, user } = useAuth0();
 
-  useEffect(() => {
-    const handleUserData = async () => {
-      if (isAuthenticated && user) {
-        let fetchedUser = await fetchUserData(user.sub);
-  
-        if (!fetchedUser || fetchedUser.length === 0) {
-          setShowUsernameForm(true);
-        } else {
-          setCanisterUser(fetchedUser[0]);
-          setCanisterUserData(fetchedUser[0]); // Set canister user data in App component
-        }
-      }
-    };
-
-    handleUserData();
-  }, [isAuthenticated, user, setCanisterUserData]);
-
-  const handleNewUserSubmit = async (username) => {
-    // ... existing code ...
-    try {
-      const newUser = { ...user, username };
-      await createUser(newUser);
-      setShowUsernameForm(false);
-      setCanisterUser(newUser);
-      setCanisterUserData(newUser); // Update canister user data in App component
-    } catch (error) {
-      console.error('Error in creating user:', error);
+  React.useEffect(() => {
+    if (user) {
+      userStore.authenticateUser(user);
     }
-  };
+  }, [user, userStore]);
 
+  const { isAuthenticated, userData, showUsernameForm, handleNewUserSubmit, isLoading } = userStore;
   return (
     <div>
-      {!isAuthenticated && (
-        <button onClick={() => loginWithRedirect()}>Log In</button>
-      )}
-      {isAuthenticated && (
+      {isLoading ? (
+        <p>Loading user profile...</p>
+      ) : (
         <>
-          <UserProfile user={user} source="Auth0" />
-          {canisterUser && <UserProfile user={canisterUser} source="Canister" />}
-          <button onClick={() => logout({ returnTo: window.location.origin })}>
-            Log Out
-          </button>
-          {showUsernameForm && <NewUserForm onSubmit={handleNewUserSubmit} />}
+          {!isAuthenticated ? (
+            <button onClick={() => loginWithRedirect()}>Log In</button>
+          ) : (
+            <>
+              <UserProfile user={userData} source={userData ? "Canister" : "Auth0"} />
+              <button onClick={() => logout({ returnTo: window.location.origin })}>Log Out</button>
+              {showUsernameForm && <NewUserForm onSubmit={(username) => handleNewUserSubmit(username)} />}
+            </>
+          )}
         </>
       )}
     </div>
   );
-};
+}));
 
 export default NavBar;
