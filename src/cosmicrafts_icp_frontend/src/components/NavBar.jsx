@@ -16,6 +16,7 @@ const NavBar = inject("userStore")(observer(({ userStore }) => {
   }, [user, userStore]);
 
   const { isAuthenticated, userData, showUsernameForm, handleNewUserSubmit, isLoading } = userStore;
+  
   return (
     <div>
       {isLoading ? (
@@ -23,7 +24,10 @@ const NavBar = inject("userStore")(observer(({ userStore }) => {
       ) : (
         <>
           {!isAuthenticated ? (
-            <button onClick={() => loginWithRedirect()}>Log In</button>
+             <>
+             <button onClick={() => loginWithRedirect()}>Log In with Auth0</button>
+             <button onClick={() => userStore.loginWithPlug()}>Login with Plug</button>
+           </>
           ) : (
             <>
               <UserProfile user={userData} source={userData ? "Canister" : "Auth0"} />

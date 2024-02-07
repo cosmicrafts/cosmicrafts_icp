@@ -1,6 +1,7 @@
 {
   "name": "cosmicrafts_icp_frontend",
   "version": "0.2.0",
+  "license": "MIT",
   "description": "Internet Computer starter application",
   "keywords": [
     "Internet Computer",

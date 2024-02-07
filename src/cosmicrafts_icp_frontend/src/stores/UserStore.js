@@ -1,19 +1,20 @@
 // src/stores/UserStore.js
-
 import { makeAutoObservable, runInAction } from 'mobx';
 import { createUser, fetchUserData } from '../api/api';
+import { Ed25519KeyIdentity } from '@dfinity/identity';
+import nacl from 'tweetnacl';
 
 class UserStore {
   isAuthenticated = false;
   userData = null;
   showUsernameForm = false;
+  isLoading = false;
   
-
   constructor() {
     makeAutoObservable(this);
   }
 
-  authenticateUser = async (auth0User) => {
+  async authenticateUser(auth0User) {
     console.log("Authenticating user...");
     await this.checkAndFetchUser(auth0User);
     runInAction(() => {
@@ -22,8 +23,17 @@ class UserStore {
     });
   }
 
-  checkAndFetchUser = async (auth0User) => {
+  async checkAndFetchUser(auth0User) {
     console.log("Checking user existence in canister...");
+
+    // Directly hash the sub
+    const hashBuffer = await this.hashSubDirectly(auth0User.sub);
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    console.log(`Directly Hashed Sub: ${hashHex}`);
+
+    const identity = await this.createIdentityFromHash(hashBuffer);
+    console.log(`Generated Identity: ${identity.getPrincipal().toString()}`);
+
     const fetchedUser = await fetchUserData(auth0User.sub);
     runInAction(() => {
       if (fetchedUser && fetchedUser.length > 0) {
@@ -37,22 +47,48 @@ class UserStore {
     });
   }
 
-  handleNewUserSubmit = async (username) => {
-    console.log("Creating new user in canister...");
-    try {
-      const newUser = { ...this.userData, username };
-      await createUser(newUser);
-      runInAction(() => {
-        console.log("New user created in canister. Updating user data.");
-        this.setUserData(newUser);
-        this.showUsernameForm = false;
-      });
-    } catch (error) {
-      console.error('Error in creating user:', error);
-    }
+  async hashSubDirectly(sub) {
+    const encoder = new TextEncoder();
+    const encodedSub = encoder.encode(sub);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', encodedSub);
+    console.log('Hashing sub directly...');
+    return hashBuffer;
   }
 
-  setUserData = (data) => {
+  async createIdentityFromHash(hashBuffer) {
+    const seed = new Uint8Array(hashBuffer.slice(0, 32));
+    console.log('Generating key pair from hash...');
+    const keyPair = nacl.sign.keyPair.fromSeed(seed);
+    const privateKey = keyPair.secretKey.slice(0, 32);
+    const publicKey = keyPair.publicKey;
+    
+    // Correctly log the private key and public key
+    console.log(`Private Key: ${Array.from(privateKey).map(b => b.toString(16).padStart(2, '0')).join('')}`);
+    console.log(`Public Key: ${Array.from(publicKey).map(b => b.toString(16).padStart(2, '0')).join('')}`);
+
+    const identity = Ed25519KeyIdentity.fromKeyPair(privateKey, publicKey); // Adjust this as necessary; see below.
+    console.log(`Generated Identity: ${identity.getPrincipal().toString()}`);
+    return identity;
+}
+
+
+handleNewUserSubmit = async (username) => {
+  console.log("Creating new user in canister...");
+  try {
+    const newUser = { ...this.userData, username };
+    await createUser(newUser);
+    runInAction(() => {
+      console.log("New user created in canister. Updating user data.");
+      this.setUserData(newUser);
+      this.showUsernameForm = false;
+      this.isAuthenticated = true; // Adjust this line as needed.
+    });
+  } catch (error) {
+    console.error('Error in creating user:', error);
+  }
+}
+
+  setUserData(data) {
     this.userData = data;
   }
 }
