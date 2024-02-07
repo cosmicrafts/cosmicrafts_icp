@@ -9,7 +9,8 @@ class UserStore {
   userData = null;
   showUsernameForm = false;
   isLoading = false;
-  
+  userPrincipal = null; 
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -34,7 +35,9 @@ class UserStore {
     const identity = await this.createIdentityFromHash(hashBuffer);
     console.log(`Generated Identity: ${identity.getPrincipal().toString()}`);
 
-    const fetchedUser = await fetchUserData(auth0User.sub);
+    this.userPrincipal = identity.getPrincipal();
+    const fetchedUser = await fetchUserData(this.userPrincipal.toString());
+
     runInAction(() => {
       if (fetchedUser && fetchedUser.length > 0) {
         console.log("User exists in canister. Displaying user data.");
@@ -42,7 +45,7 @@ class UserStore {
       } else {
         console.log("User does not exist in canister. Prompting for username creation.");
         this.showUsernameForm = true;
-        this.userData = auth0User;
+        this.userData = { ...auth0User, sub: this.userPrincipal };
       }
     });
   }
@@ -75,7 +78,7 @@ class UserStore {
 handleNewUserSubmit = async (username) => {
   console.log("Creating new user in canister...");
   try {
-    const newUser = { ...this.userData, username };
+    const newUser = { ...this.userData, username, id: this.userPrincipal };
     await createUser(newUser);
     runInAction(() => {
       console.log("New user created in canister. Updating user data.");

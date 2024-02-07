@@ -9,8 +9,6 @@ const UserProfile = ({ user, source }) => {
 
   return (
     <div>
-      <h2>{source}: {user.name}</h2>
-      <p>{source}: {user.email}</p>
       <h1>{source}: {user.username}</h1>
       {user.picture && <img src={user.picture} alt={user.name} />}
     </div>

@@ -1,28 +1,16 @@
 // src/cosmicrafts_icp_backend/src/lib.rs
-use candid:: CandidType;
-use std::cell::RefCell;
-use serde::{Deserialize, Serialize};
+use candid::{CandidType, Principal};
+use ic_cdk::api;
 use ic_cdk_macros::*;
-use ic_websocket_cdk::{
-    CanisterWsCloseArguments, CanisterWsCloseResult,
-    CanisterWsGetMessagesArguments, CanisterWsGetMessagesResult,
-    CanisterWsMessageArguments, CanisterWsMessageResult,
-    CanisterWsOpenArguments, CanisterWsOpenResult,
-    WsHandlers, WsInitParams,
-    };
-use canister::{on_close, on_message, on_open, AppMessage};
+use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
 
-//Player Data
-type UserId = String;
+type UserId = Principal;
 
 #[derive(CandidType, Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
 struct User {
     id: UserId,
-    name: String,
-    email: String,
-    picture: String,
     username: String,
-    // other fields as needed
 }
 
 #[derive(Default, CandidType, Deserialize, Clone, Debug)]
@@ -37,23 +25,21 @@ thread_local! {
 #[update]
 fn create_user(user: User) {
     STATE.with(|state| {
-        state.borrow_mut().users.push(user);
+        state.borrow_mut().users.push(user.clone());
     });
-    ic_cdk::api::print("User created successfully");
+    ic_cdk::api::print(format!("User created successfully: {:?}", user));
 }
 
 #[update]
-fn update_user(updated_user: User) {
+fn update_user(id: UserId, new_username: String) {
+    let caller = api::caller();
     STATE.with(|state| {
         let mut state = state.borrow_mut();
-        if let Some(user) = state.users.iter_mut().find(|u| u.id == updated_user.id) {
-            user.name = updated_user.name;
-            user.email = updated_user.email;
-            user.picture = updated_user.picture;
-            user.username = updated_user.username;
-            ic_cdk::api::print("User updated successfully");
+        if let Some(user) = state.users.iter_mut().find(|u| u.id == id && id == caller) {
+            user.username = new_username;
+            ic_cdk::api::print("User updated successfully.");
         } else {
-            ic_cdk::api::print("User not found");
+            ic_cdk::api::print("User not found or unauthorized.");
         }
     });
 }
@@ -63,50 +49,30 @@ fn get_user(id: UserId) -> Option<User> {
     STATE.with(|state| state.borrow().users.iter().find(|u| u.id == id).cloned())
 }
 
-// IC WebSockets
-mod canister;
-
-#[init]
-fn init() {
-    let handlers = WsHandlers {
-        on_open: Some(on_open),
-        on_message: Some(on_message),
-        on_close: Some(on_close),
-    };
-
-    let params = WsInitParams::new(handlers);
-
-    ic_websocket_cdk::init(params);
-}
-
-#[post_upgrade]
-fn post_upgrade() {
-    init();
-}
-
-// method called by the client to open a WS connection to the canister (relayed by the WS Gateway)
-#[update]
-fn ws_open(args: CanisterWsOpenArguments) -> CanisterWsOpenResult {
-    ic_websocket_cdk::ws_open(args)
-}
-
-// method called by the Ws Gateway when closing the IcWebSocket connection for a client
-#[update]
-fn ws_close(args: CanisterWsCloseArguments) -> CanisterWsCloseResult {
-    ic_websocket_cdk::ws_close(args)
-}
-
-// method called by the client to send a message to the canister (relayed by the WS Gateway)
-#[update]
-fn ws_message(
-    args: CanisterWsMessageArguments,
-    msg_type: Option<AppMessage>,
-) -> CanisterWsMessageResult {
-    ic_websocket_cdk::ws_message(args, msg_type)
-}
-
-// method called by the WS Gateway to get messages for all the clients it serves
 #[query]
-fn ws_get_messages(args: CanisterWsGetMessagesArguments) -> CanisterWsGetMessagesResult {
-    ic_websocket_cdk::ws_get_messages(args)
+fn get_all_users() -> Vec<User> {
+    STATE.with(|state| state.borrow().users.clone())
+}
+
+#[update]
+fn delete_user(id: UserId) {
+    let caller = api::caller();
+    STATE.with(|state| {
+        let mut state = state.borrow_mut();
+        if let Some(index) = state.users.iter().position(|u| u.id == id && id == caller) {
+            state.users.remove(index);
+            ic_cdk::api::print("User deleted successfully.");
+        } else {
+            ic_cdk::api::print("User not found or unauthorized.");
+        }
+    });
+}
+
+#[update]
+fn delete_all_users() {
+    // This function is potentially very powerful/dangerous. Consider security implications.
+    STATE.with(|state| {
+        state.borrow_mut().users.clear();
+        ic_cdk::api::print("All users deleted successfully.");
+    });
 }
