@@ -27,6 +27,7 @@ const NavBar = inject("userStore")(observer(({ userStore }) => {
              <>
              <button onClick={() => loginWithRedirect()}>Log In with Auth0</button>
              <button onClick={() => userStore.loginWithPlug()}>Login with Plug</button>
+             <button onClick={() => userStore.loginWithStoic()}>Login with Stoic</button>
              <button onClick={() => userStore.loginWithInternetIdentity()}>Log In with Internet Identity</button>
            </>
           ) : (
