@@ -29,6 +29,8 @@ const NavBar = inject("userStore")(observer(({ userStore }) => {
              <button className="login-button" onClick={() => userStore.loginWithStoic()}>Login with Stoic</button>
              <button className="login-button" onClick={() => userStore.loginWithAstroX()}>Login with AstroX</button>
              <button className="login-button" onClick={() => userStore.loginWithInternetIdentity()}>Log In with Internet Identity</button>
+             <button className="login-button" onClick={() => userStore.loginWithMetaMask()}>Login with MetaMask</button>
+
            </>
           ) : (
             <>

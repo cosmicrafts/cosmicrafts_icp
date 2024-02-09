@@ -9,6 +9,7 @@ import { Principal } from '@dfinity/principal';
 import InternetIdentityService from '../services/InternetIdentityService';
 import StoicService from '../services/StoicService';
 import AstroXService from '../services/AstroXService';
+import MetaMaskService from '../services/MetaMaskService';
 
 class UserStore {
   isAuthenticated = false;
@@ -143,6 +144,26 @@ async loginWithAstroX() {
   }
 }
 
+async loginWithMetaMask() {
+  this.isLoading = true;
+  try {
+      const uniqueMessage = "Sign this message to log in with your Ethereum wallet";
+      const signature = await MetaMaskService.signMessage(uniqueMessage);
+      // Hash the signature to use as a unique identifier
+      const hashBuffer = await this.hashSubDirectly(signature);
+      const identity = await this.createIdentityFromHash(hashBuffer);
+      this.userPrincipal = identity.getPrincipal().toString();
+      await this.checkAndFetchUser(this.userPrincipal);
+  } catch (error) {
+      runInAction(() => {
+          this.isLoading = false;
+          this.errorMessage = error.message;
+          NotificationStore.showNotification(error.message, 'error');
+      });
+  }
+}
+
+
 async loginWithInternetIdentity() {
   this.isLoading = true;
   try {
@@ -157,6 +178,7 @@ async loginWithInternetIdentity() {
     });
   }
 }
+
 
 async logout() {
   await InternetIdentityService.logout();
