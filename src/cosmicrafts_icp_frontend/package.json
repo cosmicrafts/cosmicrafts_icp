@@ -13,6 +13,7 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.2.4",
     "@dfinity/agent": "0.20.2",
+    "@dfinity/auth-client": "0.20.2",
     "@dfinity/candid": "0.20.2",
     "@dfinity/identity": "0.20.2",
     "@dfinity/identity-secp256k1": "^0.20.1",

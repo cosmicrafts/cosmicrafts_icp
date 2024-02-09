@@ -1,3 +1,5 @@
+// src/cosmicrafts_icp_frontend/src/App.jsx
+
 import React from 'react';
 import { Provider, observer } from 'mobx-react';
 import NavBar from './components/NavBar';

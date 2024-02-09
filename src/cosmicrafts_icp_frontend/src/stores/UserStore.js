@@ -4,6 +4,8 @@ import { createUser, fetchUserData } from '../api/api';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import nacl from 'tweetnacl';
 import NotificationStore from './NotificationStore';
+import PlugAuthService from '../services/PlugAuthService';
+import { Principal } from '@dfinity/principal';
 
 class UserStore {
   isAuthenticated = false;
@@ -26,39 +28,57 @@ class UserStore {
     });
   }
 
-  async checkAndFetchUser(auth0User) {
+  async checkAndFetchUser(userIdentifier) {
     console.log("Checking user existence in canister...");
-
-    // Directly hash the sub
-    const hashBuffer = await this.hashSubDirectly(auth0User.sub);
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-    console.log(`Directly Hashed Sub: ${hashHex}`);
-
-    const identity = await this.createIdentityFromHash(hashBuffer);
-    console.log(`Generated Identity: ${identity.getPrincipal().toString()}`);
-
-    this.userPrincipal = identity.getPrincipal();
-    const fetchedUser = await fetchUserData(this.userPrincipal.toString());
-
+  
+    let identifier;
+    let isWalletPrincipal = false;
+  
+    // Determine if the input is from Auth0 or a wallet (e.g., Plug)
+    if (typeof userIdentifier === 'object' && userIdentifier.sub) {
+      // Auth0 user
+      identifier = userIdentifier.sub;
+    } else {
+      // Wallet user
+      identifier = userIdentifier;
+      isWalletPrincipal = true;
+    }
+  
+    let principalId;
+    if (isWalletPrincipal) {
+      // For wallet principals, use it directly
+      this.userPrincipal = identifier;
+      principalId = Principal.fromText(identifier); // Ensure it's a valid principal
+    } else {
+      // For Auth0, hash the identifier to generate keys and a principal
+      const hashBuffer = await this.hashSubDirectly(identifier);
+      const identity = await this.createIdentityFromHash(hashBuffer);
+      this.userPrincipal = identity.getPrincipal().toString();
+      principalId = identity.getPrincipal();
+    }
+  
+    const fetchedUser = await fetchUserData(this.userPrincipal);
     runInAction(() => {
-      if (fetchedUser && fetchedUser.length > 0) {
-        console.log("User exists in canister. Displaying user data.");
+      if (!fetchedUser || fetchedUser.length === 0) {
+        this.showUsernameForm = true;
+        this.userData = { identifier, sub: this.userPrincipal };
+        NotificationStore.showNotification("You're new here! Let's set up your username.", "info");
+      } else {
         this.setUserData(fetchedUser[0]);
         NotificationStore.showNotification("Welcome back! User data fetched successfully.", "success");
-      } else {
-        console.log("User does not exist in canister. Prompting for username creation.");
-        this.showUsernameForm = true;
-        this.userData = { ...auth0User, sub: this.userPrincipal };
-        NotificationStore.showNotification("You're new here! Let's set up your username.", "info");
       }
+      this.isLoading = false;
+      this.isAuthenticated = !!fetchedUser;
     });
   }
+  
 
   async hashSubDirectly(sub) {
+    console.log(`Hashing sub directly: ${sub}`);
     const encoder = new TextEncoder();
     const encodedSub = encoder.encode(sub);
     const hashBuffer = await window.crypto.subtle.digest('SHA-256', encodedSub);
-    console.log('Hashing sub directly...');
+    console.log('Hashing completed.');
     return hashBuffer;
   }
 
@@ -78,13 +98,29 @@ class UserStore {
     return identity;
 }
 
+async loginWithPlug() {
+  this.isLoading = true;
+  try {
+    const principalId = await PlugAuthService.login();
+    await this.checkAndFetchUser(principalId); // Directly pass principalId
+  } catch (error) {
+    runInAction(() => {
+      this.isLoading = false;
+      this.errorMessage = error.message;
+      NotificationStore.showNotification(error.message, 'error');
+    });
+  }
+}
+
 handleNewUserSubmit = async (username) => {
   console.log("Creating new user in canister...");
   this.isLoading = true;
-  // Reset error message before attempting to create a new user
   this.errorMessage = "";
   try {
-    const newUser = { ...this.userData, username, id: this.userPrincipal };
+    // Ensure `id` is a Principal object
+    const principalId = Principal.fromText(this.userPrincipal);
+    const newUser = { ...this.userData, username, id: principalId };
+    
     await createUser(newUser);
     runInAction(() => {
       console.log("New user created in canister. Updating user data.");
@@ -97,7 +133,7 @@ handleNewUserSubmit = async (username) => {
   } catch (error) {
     console.error('Error in creating user:', error);
     runInAction(() => {
-      this.isLoading = false; // Reset loading state
+      this.isLoading = false;
       NotificationStore.showNotification(error.message, 'error');
       this.errorMessage = error.message; 
     });
