@@ -6,6 +6,7 @@ import nacl from 'tweetnacl';
 import NotificationStore from './NotificationStore';
 import PlugAuthService from '../services/PlugAuthService';
 import { Principal } from '@dfinity/principal';
+import InternetIdentityService from '../services/InternetIdentityService';
 
 class UserStore {
   isAuthenticated = false;
@@ -110,6 +111,29 @@ async loginWithPlug() {
       NotificationStore.showNotification(error.message, 'error');
     });
   }
+}
+
+async loginWithInternetIdentity() {
+  this.isLoading = true;
+  try {
+    await InternetIdentityService.initAuthClient();
+    const principalId = await InternetIdentityService.login();
+    await this.checkAndFetchUser(principalId);
+  } catch (error) {
+    runInAction(() => {
+      this.isLoading = false;
+      this.errorMessage = error.message || 'Failed to login with Internet Identity';
+      NotificationStore.showNotification(this.errorMessage, 'error');
+    });
+  }
+}
+
+async logout() {
+  await InternetIdentityService.logout();
+  runInAction(() => {
+    this.isAuthenticated = false;
+    this.userData = null;
+  });
 }
 
 handleNewUserSubmit = async (username) => {
