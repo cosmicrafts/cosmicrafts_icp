@@ -30,14 +30,13 @@ const NavBar = inject("userStore")(observer(({ userStore }) => {
              <button className="login-button" onClick={() => userStore.loginWithAstroX()}>Login with AstroX</button>
              <button className="login-button" onClick={() => userStore.loginWithInternetIdentity()}>Log In with Internet Identity</button>
              <button className="login-button" onClick={() => userStore.loginWithMetaMask()}>Login with MetaMask</button>
-
            </>
           ) : (
             <>
               <div className="user-profile">
                 <UserProfile user={userData} source={userData ? "Canister" : "Auth0"} />
               </div>
-              <button className="logout-button" onClick={() => logout({ returnTo: window.location.origin })}>Log Out</button>
+              <button className="logout-button" onClick={() => logout({ returnTo: window.location.href })}>Log Out</button>
               {showUsernameForm && <div className="new-user-form"><NewUserForm onSubmit={(username) => handleNewUserSubmit(username)} /></div>}
             </>
           )}

@@ -1,7 +1,5 @@
 // src/services/MetaMaskService.js
 
-import { ethers } from 'ethers';
-
 class MetaMaskService {
     async isMetaMaskInstalled() {
         console.log('Checking if MetaMask is installed...');

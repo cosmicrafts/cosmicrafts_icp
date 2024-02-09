@@ -38,7 +38,8 @@
     "react-router-dom": "^6.21.1",
     "stream": "^0.0.2",
     "tweetnacl": "^1.0.3",
-    "util": "^0.12.5"
+    "util": "^0.12.5",
+    "web3": "^4.4.0"
   },
   "devDependencies": {
     "@rollup/plugin-inject": "^5.0.5",
