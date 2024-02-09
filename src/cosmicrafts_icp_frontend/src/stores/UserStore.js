@@ -8,6 +8,7 @@ import PlugAuthService from '../services/PlugAuthService';
 import { Principal } from '@dfinity/principal';
 import InternetIdentityService from '../services/InternetIdentityService';
 import StoicService from '../services/StoicService';
+import AstroXService from '../services/AstroXService';
 
 class UserStore {
   isAuthenticated = false;
@@ -118,6 +119,20 @@ async loginWithStoic() {
   this.isLoading = true;
   try {
     const principalId = await StoicService.login();
+    await this.checkAndFetchUser(principalId); // Directly pass principalId
+  } catch (error) {
+    runInAction(() => {
+      this.isLoading = false;
+      this.errorMessage = error.message;
+      NotificationStore.showNotification(error.message, 'error');
+    });
+  }
+}
+
+async loginWithAstroX() {
+  this.isLoading = true;
+  try {
+    const principalId = await AstroXService.login();
     await this.checkAndFetchUser(principalId); // Directly pass principalId
   } catch (error) {
     runInAction(() => {
