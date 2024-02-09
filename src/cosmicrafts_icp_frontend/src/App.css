@@ -1,21 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;700&display=swap');
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+* {
+  font-family: 'Oxanium', sans-serif;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-image: linear-gradient(180deg, #141414, #202020, #0e0e0e);
+}
+
+.navbar {
+  width: 90%;
+  border-radius: 16px;
+  border: 1px solid #8a8a8a;
+  background-image: linear-gradient(160deg, #1b2025, #273341, #1b2025);
+  color: #fff;
+  padding: 1rem;
+}
+
+.navbar .login-button {
+  margin: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #62c704;
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.05s ease;
+}
+
+.navbar .login-button:hover {
+  background-color: #a1f534;
+}
+
+.navbar .loading-message {
+  margin-top: 1rem;
+  font-style: italic;
+  color: #ccc;
+}
+
+.user-profile {
+  margin-top: 1rem;
+}
+
+.user-profile img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.new-user-form {
+  margin-top: 1rem;
+}
+
+.new-user-form input[type="text"] {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  width: 200px;
+  color: #fff;
+  background-color: #1b2025;
+}
+
+.new-user-form button {
+  margin-left: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #62c704;
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.05s ease;
+}
+
+.new-user-form button:hover {
+  background-color: #a1f534;
+}
+
+.new-user-form button {
+  margin-top: 0.5rem;
+}
+
+.logout-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #920b0b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+.logout-button:hover {
+  background-color: #ff3030;
+}
+
+.notification {
+  padding: 10px;
+  margin: 12px 0;
+  border-radius: 16px;
+  color: rgb(20, 20, 20);
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.success {
+  background-color: #62c704;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.info {
+  background-color: #ffffff;
 }
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+
+.error {
+  background-color: #d82810;
 }
 
 @keyframes logo-spin {

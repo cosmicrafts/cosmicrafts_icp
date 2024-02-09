@@ -1,5 +1,4 @@
 // src/cosmicrafts_icp_frontend/src/components/NavBar.jsx
-
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -18,24 +17,26 @@ const NavBar = inject("userStore")(observer(({ userStore }) => {
   const { isAuthenticated, userData, showUsernameForm, handleNewUserSubmit, isLoading } = userStore;
   
   return (
-    <div>
+    <div className="navbar">
       {isLoading ? (
-        <p>Loading user profile...</p>
+        <p className="loading-message">Loading user profile...</p>
       ) : (
         <>
           {!isAuthenticated ? (
              <>
-             <button onClick={() => loginWithRedirect()}>Log In with Auth0</button>
-             <button onClick={() => userStore.loginWithPlug()}>Login with Plug</button>
-             <button onClick={() => userStore.loginWithStoic()}>Login with Stoic</button>
-             <button onClick={() => userStore.loginWithAstroX()}>Login with AstroX</button>
-             <button onClick={() => userStore.loginWithInternetIdentity()}>Log In with Internet Identity</button>
+             <button className="login-button" onClick={() => loginWithRedirect()}>Log In with Auth0</button>
+             <button className="login-button" onClick={() => userStore.loginWithPlug()}>Login with Plug</button>
+             <button className="login-button" onClick={() => userStore.loginWithStoic()}>Login with Stoic</button>
+             <button className="login-button" onClick={() => userStore.loginWithAstroX()}>Login with AstroX</button>
+             <button className="login-button" onClick={() => userStore.loginWithInternetIdentity()}>Log In with Internet Identity</button>
            </>
           ) : (
             <>
-              <UserProfile user={userData} source={userData ? "Canister" : "Auth0"} />
-              <button onClick={() => logout({ returnTo: window.location.origin })}>Log Out</button>
-              {showUsernameForm && <NewUserForm onSubmit={(username) => handleNewUserSubmit(username)} />}
+              <div className="user-profile">
+                <UserProfile user={userData} source={userData ? "Canister" : "Auth0"} />
+              </div>
+              <button className="logout-button" onClick={() => logout({ returnTo: window.location.origin })}>Log Out</button>
+              {showUsernameForm && <div className="new-user-form"><NewUserForm onSubmit={(username) => handleNewUserSubmit(username)} /></div>}
             </>
           )}
         </>
