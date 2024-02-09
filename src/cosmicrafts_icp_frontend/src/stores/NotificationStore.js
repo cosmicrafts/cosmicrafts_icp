@@ -1,5 +1,4 @@
 // src/stores/NotificationStore.js
-
 import { makeAutoObservable } from 'mobx';
 
 class NotificationStore {
@@ -9,18 +8,20 @@ class NotificationStore {
     makeAutoObservable(this);
   }
 
-  showNotification(message, type) {
-    const notification = { message, type };
-    this.addNotification(notification);
-    setTimeout(() => this.removeNotification(notification), 5000); // Adjust the time as needed
-  }
-
-  addNotification(notification) {
+  // Enhanced to include autoDismiss and duration parameters
+  showNotification(message, type, autoDismiss = true, duration = 5000) {
+    const id = Date.now(); // Unique ID for each notification
+    const notification = { id, message, type, autoDismiss, duration };
     this.notifications.push(notification);
+    
+    // Auto-remove for dismissible notifications
+    if (autoDismiss) {
+      setTimeout(() => this.removeNotification(id), duration);
+    }
   }
 
-  removeNotification(notification) {
-    this.notifications = this.notifications.filter(notif => notif !== notification);
+  removeNotification(id) {
+    this.notifications = this.notifications.filter(notif => notif.id !== id);
   }
 }
 

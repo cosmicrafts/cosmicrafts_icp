@@ -3,13 +3,15 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { createUser, fetchUserData } from '../api/api';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import nacl from 'tweetnacl';
+import NotificationStore from './NotificationStore';
 
 class UserStore {
   isAuthenticated = false;
   userData = null;
   showUsernameForm = false;
   isLoading = false;
-  userPrincipal = null; 
+  userPrincipal = null;
+  errorMessage = "";
 
   constructor() {
     makeAutoObservable(this);
@@ -19,7 +21,7 @@ class UserStore {
     console.log("Authenticating user...");
     await this.checkAndFetchUser(auth0User);
     runInAction(() => {
-      console.log("User authenticated");
+      console.log("auth0 user authenticated");
       this.isAuthenticated = true;
     });
   }
@@ -42,10 +44,12 @@ class UserStore {
       if (fetchedUser && fetchedUser.length > 0) {
         console.log("User exists in canister. Displaying user data.");
         this.setUserData(fetchedUser[0]);
+        NotificationStore.showNotification("Welcome back! User data fetched successfully.", "success");
       } else {
         console.log("User does not exist in canister. Prompting for username creation.");
         this.showUsernameForm = true;
         this.userData = { ...auth0User, sub: this.userPrincipal };
+        NotificationStore.showNotification("You're new here! Let's set up your username.", "info");
       }
     });
   }
@@ -69,14 +73,16 @@ class UserStore {
     console.log(`Private Key: ${Array.from(privateKey).map(b => b.toString(16).padStart(2, '0')).join('')}`);
     console.log(`Public Key: ${Array.from(publicKey).map(b => b.toString(16).padStart(2, '0')).join('')}`);
 
-    const identity = Ed25519KeyIdentity.fromKeyPair(privateKey, publicKey); // Adjust this as necessary; see below.
+    const identity = Ed25519KeyIdentity.fromKeyPair(privateKey, publicKey);
     console.log(`Generated Identity: ${identity.getPrincipal().toString()}`);
     return identity;
 }
 
-
 handleNewUserSubmit = async (username) => {
   console.log("Creating new user in canister...");
+  this.isLoading = true;
+  // Reset error message before attempting to create a new user
+  this.errorMessage = "";
   try {
     const newUser = { ...this.userData, username, id: this.userPrincipal };
     await createUser(newUser);
@@ -84,10 +90,17 @@ handleNewUserSubmit = async (username) => {
       console.log("New user created in canister. Updating user data.");
       this.setUserData(newUser);
       this.showUsernameForm = false;
-      this.isAuthenticated = true; // Adjust this line as needed.
+      this.isAuthenticated = true;
+      this.isLoading = false;
+      NotificationStore.showNotification("User created successfully! Welcome aboard.", "success");
     });
   } catch (error) {
     console.error('Error in creating user:', error);
+    runInAction(() => {
+      this.isLoading = false; // Reset loading state
+      NotificationStore.showNotification(error.message, 'error');
+      this.errorMessage = error.message; 
+    });
   }
 }
 

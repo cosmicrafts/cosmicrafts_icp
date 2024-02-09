@@ -18,15 +18,19 @@ const backendActor = Actor.createActor(backendIdlFactory, {
 // Function to create a new user in the canister
 export const createUser = async (user) => {
   try {
-    await backendActor.create_user({
-      id: user.id,
-      username: user.username,
-    });
     console.log('Creating user with data:', user);
-    await backendActor.create_user(user);
+    const result = await backendActor.create_user(user);
+    console.log('Result from create_user:', result);
+    
+    if (result.hasOwnProperty('Error')) {
+      throw new Error(result.Error); 
+    }
+
     console.log('User created successfully');
+    return true;
   } catch (error) {
     console.error('Error creating user:', error);
+    throw error;
   }
 };
 

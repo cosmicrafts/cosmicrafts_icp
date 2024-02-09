@@ -18,16 +18,29 @@ struct State {
     users: Vec<User>,
 }
 
+#[derive(CandidType, Deserialize)]
+enum OperationResult {
+    Success,
+    Error(String),
+}
+
 thread_local! {
     static STATE: RefCell<State> = RefCell::new(State::default());
 }
 
 #[update]
-fn create_user(user: User) {
+fn create_user(user: User) -> OperationResult {
     STATE.with(|state| {
-        state.borrow_mut().users.push(user.clone());
-    });
-    ic_cdk::api::print(format!("User created successfully: {:?}", user));
+        let mut state = state.borrow_mut();
+        let exists = state.users.iter().any(|u| u.id == user.id || u.username == user.username);
+        if !exists {
+            state.users.push(user.clone());
+            ic_cdk::api::print(format!("User created successfully: {:?}", user));
+            OperationResult::Success
+        } else {
+            OperationResult::Error("User already exists.".to_string())
+        }
+    })
 }
 
 #[update]

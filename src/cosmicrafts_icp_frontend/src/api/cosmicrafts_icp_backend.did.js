@@ -1,79 +1,15 @@
 // src/cosmicrafts_icp_frontend/src/declarations/cosmicrafts_icp_backend/cosmicrafts_icp_backend.did.js
-
 export const idlFactory = ({ IDL }) => {
   const UserId = IDL.Principal;
-  const User = IDL.Record({
-    'id' : IDL.Principal,
-    'username' : IDL.Text,
-  });
-  const ClientPrincipal = IDL.Principal;
-  const ClientKey = IDL.Record({
-    'client_principal' : ClientPrincipal,
-    'client_nonce' : IDL.Nat64,
-  });
-  const CanisterWsCloseArguments = IDL.Record({ 'client_key' : ClientKey });
-  const CanisterWsCloseResult = IDL.Variant({
-    'Ok' : IDL.Null,
-    'Err' : IDL.Text,
-  });
-  const CanisterWsGetMessagesArguments = IDL.Record({ 'nonce' : IDL.Nat64 });
-  const CanisterOutputMessage = IDL.Record({
-    'key' : IDL.Text,
-    'content' : IDL.Vec(IDL.Nat8),
-    'client_key' : ClientKey,
-  });
-  const CanisterOutputCertifiedMessages = IDL.Record({
-    'messages' : IDL.Vec(CanisterOutputMessage),
-    'cert' : IDL.Vec(IDL.Nat8),
-    'tree' : IDL.Vec(IDL.Nat8),
-    'is_end_of_queue' : IDL.Bool,
-  });
-  const CanisterWsGetMessagesResult = IDL.Variant({
-    'Ok' : CanisterOutputCertifiedMessages,
-    'Err' : IDL.Text,
-  });
-  const WebsocketMessage = IDL.Record({
-    'sequence_num' : IDL.Nat64,
-    'content' : IDL.Vec(IDL.Nat8),
-    'client_key' : ClientKey,
-    'timestamp' : IDL.Nat64,
-    'is_service_message' : IDL.Bool,
-  });
-  const CanisterWsMessageArguments = IDL.Record({ 'msg' : WebsocketMessage });
-  const AppMessage = IDL.Record({ 'text' : IDL.Text, 'timestamp' : IDL.Nat64 });
-  const CanisterWsMessageResult = IDL.Variant({
-    'Ok' : IDL.Null,
-    'Err' : IDL.Text,
-  });
-  const GatewayPrincipal = IDL.Principal;
-  const CanisterWsOpenArguments = IDL.Record({
-    'gateway_principal' : GatewayPrincipal,
-    'client_nonce' : IDL.Nat64,
-  });
-  const CanisterWsOpenResult = IDL.Variant({
-    'Ok' : IDL.Null,
-    'Err' : IDL.Text,
-  });
+  const User = IDL.Record({ 'id': UserId, 'username': IDL.Text });
+  const OperationResult = IDL.Variant({ 'Success': IDL.Null, 'Error': IDL.Text });
+  
   return IDL.Service({
-    'create_user' : IDL.Func([User], [], []),
-    'get_user' : IDL.Func([UserId], [IDL.Opt(User)], []),
-    'update_user' : IDL.Func([User], [], []),
-    'ws_close' : IDL.Func(
-        [CanisterWsCloseArguments],
-        [CanisterWsCloseResult],
-        [],
-      ),
-    'ws_get_messages' : IDL.Func(
-        [CanisterWsGetMessagesArguments],
-        [CanisterWsGetMessagesResult],
-        ['query'],
-      ),
-    'ws_message' : IDL.Func(
-        [CanisterWsMessageArguments, IDL.Opt(AppMessage)],
-        [CanisterWsMessageResult],
-        [],
-      ),
-    'ws_open' : IDL.Func([CanisterWsOpenArguments], [CanisterWsOpenResult], []),
+    'create_user': IDL.Func([User], [OperationResult], []),
+    'get_user': IDL.Func([UserId], [IDL.Opt(User)], ['query']),
+    'update_user': IDL.Func([UserId, IDL.Text], [OperationResult], []),
+    'delete_user': IDL.Func([UserId], [OperationResult], []),
+    'get_all_users': IDL.Func([], [IDL.Vec(User)], ['query']),
+    'delete_all_users': IDL.Func([], [OperationResult], []),
   });
 };
-export const init = ({ IDL }) => { return []; };

@@ -7,11 +7,16 @@ type User = record {
     username: text;
 };
 
+type OperationResult = variant {
+    Success;
+    Error: text;
+};
+
 service : {
-  create_user: (User) -> ();
+  create_user: (User) -> (OperationResult);
   get_user: (UserId) -> (opt User) query;
-  update_user: (User) -> ();
-  delete_user: (UserId) -> ();
+  update_user: (UserId, text) -> (OperationResult);
+  delete_user: (UserId) -> (OperationResult);
   get_all_users: () -> (vec User) query;
-  delete_all_users: () -> ();
+  delete_all_users: () -> (OperationResult);
 }
