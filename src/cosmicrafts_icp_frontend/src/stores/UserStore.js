@@ -1,6 +1,6 @@
 // src/stores/UserStore.js
 import { makeAutoObservable, runInAction } from 'mobx';
-import { createUser, fetchUserData } from '../api/api';
+import { createUser, fetchUserData, icrc1_balance_of, icrc7_balance_of, transferIcrc1 } from '../api/api';
 import { Ed25519KeyIdentity } from '@dfinity/identity';
 import nacl from 'tweetnacl';
 import NotificationStore from './NotificationStore';
@@ -10,6 +10,8 @@ import InternetIdentityService from '../services/InternetIdentityService';
 import StoicService from '../services/StoicService';
 import AstroXService from '../services/AstroXService';
 import MetaMaskService from '../services/MetaMaskService';
+import { fromHexString, toHexString, getAccountId } from '../utils/account';
+
 
 class UserStore {
   isAuthenticated = false;
@@ -18,6 +20,8 @@ class UserStore {
   isLoading = false;
   userPrincipal = null;
   errorMessage = "";
+  icrc1Balance = 0;
+  userNfts = [];
 
   constructor() {
     makeAutoObservable(this);
@@ -27,7 +31,7 @@ class UserStore {
     console.log("Authenticating user...");
     await this.checkAndFetchUser(auth0User);
     runInAction(() => {
-      console.log("auth0 user authenticated");
+      console.log("User Authenticated");
       this.isAuthenticated = true;
     });
   }
@@ -69,7 +73,7 @@ class UserStore {
         NotificationStore.showNotification("You're new here! Let's set up your username.", "info");
       } else {
         this.setUserData(fetchedUser[0]);
-        NotificationStore.showNotification("Welcome back! User data fetched successfully.", "success");
+        NotificationStore.showNotification("Welcome back!", "success");
       }
       this.isLoading = false;
       this.isAuthenticated = !!fetchedUser;
@@ -78,17 +82,17 @@ class UserStore {
   
 
   async hashSubDirectly(sub) {
-    console.log(`Hashing sub directly: ${sub}`);
+   // console.log(`Hashing sub directly: ${sub}`);
     const encoder = new TextEncoder();
     const encodedSub = encoder.encode(sub);
     const hashBuffer = await window.crypto.subtle.digest('SHA-256', encodedSub);
-    console.log('Hashing completed.');
+   // console.log('Hashing completed.');
     return hashBuffer;
   }
 
   async createIdentityFromHash(hashBuffer) {
     const seed = new Uint8Array(hashBuffer.slice(0, 32));
-    console.log('Generating key pair from hash...');
+   // console.log('Generating key pair from hash...');
     const keyPair = nacl.sign.keyPair.fromSeed(seed);
     const privateKey = keyPair.secretKey.slice(0, 32);
     const publicKey = keyPair.publicKey;
@@ -216,9 +220,92 @@ handleNewUserSubmit = async (username) => {
   }
 }
 
+async fetchIcrc1Balance() {
+  console.log("Fetching ICRC1 balance for Principal:", this.userPrincipal);
+
+  try {
+    const subAccountHex = getAccountId(Principal.fromText(this.userPrincipal), 0);
+    const balance = await icrc1_balance_of(this.userPrincipal, subAccountHex);
+    console.log(`ICRC1 balance for Principal ${this.userPrincipal} is:`, balance);
+
+    runInAction(() => {
+      this.icrc1Balance = balance;
+    });
+  } catch (error) {
+    console.error('Error checking ICRC1 balance:', error);
+  }
+}
+
+
+async fetchUserNfts() {
+  console.log("Fetching user NFTs...");
+
+  try {
+    const balanceResult = await icrc7_balance_of(this.userPrincipal);
+    if (balanceResult.success) {
+      console.log(`ICRC7 balance for Principal ${this.userPrincipal} is:`, balanceResult.balance);
+      runInAction(() => {
+        // Assuming balance is the number of NFTs
+        this.userNfts = Array.from({ length: parseInt(balanceResult.balance, 10) }, (_, i) => `NFT #${i + 1}`);
+      });
+    } else {
+      console.error('Error checking ICRC7 balance:', balanceResult.error);
+      runInAction(() => {
+        this.userNfts = `Error: ${balanceResult.error}`;
+      });
+    }
+  } catch (error) {
+    console.error('Error checking ICRC7 balance:', error);
+    runInAction(() => {
+      this.userNfts = `Error: ${error.message}`;
+    });
+  }
+}
+
+async transferTokens(toPrincipalStr, amount) {
+  this.isLoading = true;
+  try {
+    // Define transfer arguments with the necessary adjustments
+    const transferArgs = {
+      from: {
+        owner: Principal.fromText(this.userPrincipal),
+        subaccount: [], // Correctly specify null for no subaccount
+      },
+      to: {
+        owner: Principal.fromText(toPrincipalStr),
+        subaccount: [], // Similarly for the recipient
+      },
+      amount: Number(amount), // Convert amount to number
+      fee: [], // Leave fee as an empty array if not applicable
+      memo: [], // Optional memo can be left empty
+      created_at_time: [], // Leave created_at_time empty if not setting a specific timestamp
+    };
+
+    // Call the transfer function with the correctly prepared transferArgs
+    const result = await transferIcrc1(transferArgs);
+
+    if (result.success) {
+      // Refresh the user's balance and notify of success
+      await this.fetchIcrc1Balance();
+      NotificationStore.showNotification("Transfer successful!", "success");
+    } else {
+      // Handle failure scenario
+      throw new Error(result.error);
+    }
+  } catch (error) {
+    // Log and notify of any errors encountered
+    console.error('Error during token transfer:', error);
+    NotificationStore.showNotification(`Transfer failed: ${error.message}`, 'error');
+  } finally {
+    this.isLoading = false;
+  }
+}
+
+
   setUserData(data) {
     this.userData = data;
   }
 }
+
 
 export default new UserStore();

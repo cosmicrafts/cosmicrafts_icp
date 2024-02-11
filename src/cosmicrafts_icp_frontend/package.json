@@ -21,10 +21,11 @@
     "@peculiar/webcrypto": "^1.4.0",
     "assert": "^2.1.0",
     "buffer": "^6.0.3",
+    "buffer-crc32": "^1.0.0",
     "cors": "^2.8.5",
     "crypto-browserify": "^3.12.0",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.3.1",
-    "ethers": "^6.11.0",
     "events": "^3.3.0",
     "express": "^4.18.2",
     "ic-stoic-identity": "^2.0.0",
@@ -38,8 +39,7 @@
     "react-router-dom": "^6.21.1",
     "stream": "^0.0.2",
     "tweetnacl": "^1.0.3",
-    "util": "^0.12.5",
-    "web3": "^4.4.0"
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@rollup/plugin-inject": "^5.0.5",

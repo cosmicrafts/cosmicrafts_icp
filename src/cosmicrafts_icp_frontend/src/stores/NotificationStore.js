@@ -10,9 +10,14 @@ class NotificationStore {
 
   // Enhanced to include autoDismiss and duration parameters
   showNotification(message, type, autoDismiss = true, duration = 5000) {
+    let textMessage = message;
     const id = Date.now(); // Unique ID for each notification
-    const notification = { id, message, type, autoDismiss, duration };
+    const notification = { id, message: textMessage, type, autoDismiss, duration };
     this.notifications.push(notification);
+
+    if (typeof message !== 'string') {
+      textMessage = message.message || JSON.stringify(message);
+    }
     
     // Auto-remove for dismissible notifications
     if (autoDismiss) {
