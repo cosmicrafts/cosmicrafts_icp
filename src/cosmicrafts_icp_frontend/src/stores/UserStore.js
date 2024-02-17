@@ -10,7 +10,10 @@ import InternetIdentityService from '../services/InternetIdentityService';
 import StoicService from '../services/StoicService';
 import AstroXService from '../services/AstroXService';
 import MetaMaskService from '../services/MetaMaskService';
+import NFIDService from '../services/NFIDService';
 import { fromHexString, toHexString, getAccountId } from '../utils/account';
+import WebSocketService from '../services/WebSocketService';
+import { AuthClient } from "@dfinity/auth-client";
 
 
 class UserStore {
@@ -25,7 +28,25 @@ class UserStore {
 
   constructor() {
     makeAutoObservable(this);
-  }
+    this.initializeWebSocket();
+}
+
+  initializeWebSocket() {
+    this.webSocket = new WebSocket('ws://localhost:8080/Data');
+    this.webSocket.onopen = () => console.log('WebSocket connection established.');
+    this.webSocket.onmessage = (message) => console.log('Message received:', message.data);
+    this.webSocket.onclose = () => console.log('WebSocket connection closed.');
+    this.webSocket.onerror = (error) => console.error('WebSocket error:', error);
+}
+
+sendMessageToUnity(message) {
+    if (this.webSocket && this.webSocket.readyState === WebSocket.OPEN) {
+        this.webSocket.send(JSON.stringify(message));
+    } else {
+        console.log("WebSocket is not connected. Attempting to reconnect...");
+        this.initializeWebSocket();
+    }
+}
 
   async authenticateUser(auth0User) {
     console.log("Authenticating user...");
@@ -183,6 +204,24 @@ async loginWithInternetIdentity() {
   }
 }
 
+async loginWithNFID() {
+  this.isLoading = true;
+  try {
+      const principalId = await NFIDService.login();
+      // After successful login, fetch user data and send a message to Unity
+      await this.checkAndFetchUser(principalId);
+      this.sendMessageToUnity({
+          type: 'LOGIN_SUCCESS',
+          payload: { principalId }
+      });
+  } catch (error) {
+      runInAction(() => {
+          this.isLoading = false;
+          this.errorMessage = error.message;
+          NotificationStore.showNotification(error.message, 'error');
+      });
+  }
+}
 
 async logout() {
   await InternetIdentityService.logout();
@@ -190,6 +229,11 @@ async logout() {
     this.isAuthenticated = false;
     this.userData = null;
   });
+
+  this.webSocketService.sendMessage({
+    type: 'LOGOUT',
+    payload: {}
+});
 }
 
 handleNewUserSubmit = async (username) => {
